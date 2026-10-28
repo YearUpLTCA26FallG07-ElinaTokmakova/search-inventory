@@ -18,7 +18,7 @@ public class Main {
         //Hint: Collections.sort() with a Comparator on getName()
         inventory.sort(Comparator.comparing(Product::getName));
 
-        System.out.println("We got the following products: %n");
+        System.out.printf("We got the following products:%n%n");
 
         for (Product product : inventory) {
             System.out.printf("id: %6d | %-40s | Price in $%10.2f%n",
