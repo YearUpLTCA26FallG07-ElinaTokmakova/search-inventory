@@ -11,18 +11,111 @@ import java.util.regex.Pattern;
 public class Main {
     public static void main(String[] args) {
 
-        ArrayList<Product> inventory = getInventory();
-        getInventoryFromFile(inventory);
+        ArrayList<Product> inventory = getInventory(); //load elements in a list manually
+        getInventoryFromFile(inventory); //load more elements in a list from file
+        displayMenu(inventory);
 
+    }
+
+    public static void displayMenu(ArrayList<Product> inventory) {
+        int command;
+
+        do {
+            System.out.printf("%n+------------------------------------------------+" +
+                    "%n|            What do you want to do?             |" +
+                    "%n+------------------------------------------------+" +
+                    "%n|  [1] list all products                         |" +
+                    "%n|  [2] lookup a product by its id                |" +
+                    "%n|  [3] find all products within a price range    |" +
+                    "%n|  [4] add a new product                         |" +
+                    "%n|  [5] quit the application                      |" +
+                    "%n+------------------------------------------------+");
+
+            command = Console.promptForInt("\nEnter command (1-5): ");
+
+            switch (command) {
+                case 1 -> listAllProducts(inventory);
+                case 2 -> searchById(inventory);
+                case 3 -> searchByPriceRange(inventory);
+                case 4 -> addNewProduct(inventory);
+                case 5 -> {}
+                default -> System.out.println("\nInvalid command.");
+            }
+        } while (command != 5);
+
+        System.out.println("Goodbye!");
+    }
+
+    private static void listAllProducts(ArrayList<Product> inventory) {
         //BONUS: Sort the products by name before you display them.
         //Hint: Collections.sort() with a Comparator on getName()
         inventory.sort(Comparator.comparing(Product::getName));
 
-        System.out.printf("We got the following products:%n%n");
+        System.out.printf("%nAll products:%n%n" +
+                "%6s | %-40s | Price in $%n%n", "id", "Product name", "Price in $");
 
         for (Product product : inventory) {
-            System.out.printf("id: %6d | %-40s | Price in $%10.2f%n",
+            System.out.printf("%6d | %-40s | %10.2f%n",
                     product.getId(), product.getName(), product.getPrice());
+        }
+    }
+    private static void searchById(ArrayList<Product> inventory) {
+        int searchId = Console.promptForInt("Enter product id: ");
+
+        for (Product product : inventory) {
+            if (searchId == product.getId()) {
+                System.out.printf("%nProduct found:%n%n" +
+                        "%6s | %-40s | Price in $%n%n", "id", "Product name", "Price in $");
+                System.out.printf("%6d | %-40s | %10.2f%n",
+                        product.getId(), product.getName(), product.getPrice());
+                return;
+            }
+        }
+        // if not found
+        System.out.println("\nProduct id is not found.");
+    }
+
+    private static void searchByPriceRange(ArrayList<Product> inventory) {
+        int minRange = Console.promptForInt("Enter minimum of your price range: ");
+        int maxRange = Console.promptForInt("Enter maximum of your price range: ");
+
+        System.out.printf("%nSearch result:%n");
+
+        boolean found = false; //no matches found yet
+
+        for (Product product : inventory) {
+            if (product.getPrice() >= minRange && product.getPrice() <= maxRange) {
+
+                //only when match is found, print header for results
+                //this conditional prints header only once cause found
+                // changes to true for next loop runs
+                if (found == false) {
+                    System.out.printf("%6s | %-40s | Price in $%n", "id", "Product name", "Price in $");
+                    found = true; //change to true if at least one match is found
+                }
+
+                //now print match
+                System.out.printf("%n%6d | %-40s | %10.2f",
+                        product.getId(), product.getName(), product.getPrice());
+            }
+        }
+        if (found == false) {
+            System.out.println("\nNo products found in this price range."); // if not found
+        }
+    }
+
+    private static void addNewProduct(ArrayList<Product> inventory) {
+        try {
+            int id = Console.promptForInt("Enter new product id: ");
+            String name = Console.promptForString("Enter new product name: ");
+            double price = Console.promptForDouble("Enter new product price: ");
+
+            inventory.add(new Product(id, name, price));
+            System.out.println("Product successfully added to inventory.");
+
+        } catch (Exception e) {
+            System.out.println("Error happened while adding a new product.");
+            e.printStackTrace();
         }
     }
 
@@ -42,13 +135,13 @@ public class Main {
         return inventory;
     }
 
-    public static ArrayList<Product> getInventoryFromFile(ArrayList<Product>  inventory) {
+    public static ArrayList<Product> getInventoryFromFile(ArrayList<Product> inventory) {
         try {
             BufferedReader bufReader = new BufferedReader(new FileReader("inventory.csv"));
             String input;
 
             //process data from file
-            while((input = bufReader.readLine()) != null) {
+            while ((input = bufReader.readLine()) != null) {
                 String[] parts = input.split(Pattern.quote("|"));
 
                 int id = Integer.parseInt(parts[0]);
@@ -58,7 +151,7 @@ public class Main {
                 inventory.add(new Product(id, name, price));
             }
 
-        } catch (IOException e){
+        } catch (IOException e) {
             System.out.println("Error while processing the file.");
             e.printStackTrace();
         }
